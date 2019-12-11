@@ -4,11 +4,15 @@
 
 package io.flutter.plugins.share;
 
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
+import java.io.IOException;
 import java.util.Map;
 
-/** Handles the method calls for the plugin. */
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
+
+/**
+ * Handles the method calls for the plugin.
+ */
 class MethodCallHandler implements MethodChannel.MethodCallHandler {
 
   private Share share;
@@ -16,6 +20,7 @@ class MethodCallHandler implements MethodChannel.MethodCallHandler {
   MethodCallHandler(Share share) {
     this.share = share;
   }
+
 
   @Override
   public void onMethodCall(MethodCall call, MethodChannel.Result result) {
@@ -30,7 +35,7 @@ class MethodCallHandler implements MethodChannel.MethodCallHandler {
       expectMapArguments(call);
       // Android does not support showing the share sheet at a particular point on screen.
       try {
-        shareFile(
+        share.shareFile(
                 (String) call.argument("path"),
                 (String) call.argument("mimeType"),
                 (String) call.argument("subject"),
@@ -40,8 +45,8 @@ class MethodCallHandler implements MethodChannel.MethodCallHandler {
         result.error(e.getMessage(), null, null);
       }
     } else {
-        result.notImplemented();
-      }
+      result.notImplemented();
+    }
 
   }
 
@@ -51,39 +56,6 @@ class MethodCallHandler implements MethodChannel.MethodCallHandler {
     }
   }
 
-  private void shareFile(String path, String mimeType, String subject, String text)
-      throws IOException {
-    if (path == null || path.isEmpty()) {
-      throw new IllegalArgumentException("Non-empty path expected");
-    }
-
-    File file = new File(path);
-    clearExternalShareFolder();
-    if (!fileIsOnExternal(file)) {
-      file = copyToExternalShareFolder(file);
-    }
-
-    Uri fileUri =
-        FileProvider.getUriForFile(
-            mRegistrar.context(),
-            mRegistrar.context().getPackageName() + ".flutter.share_provider",
-            file);
-
-    Intent shareIntent = new Intent();
-    shareIntent.setAction(Intent.ACTION_SEND);
-    shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-    if (subject != null) shareIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
-    if (text != null) shareIntent.putExtra(Intent.EXTRA_TEXT, text);
-    shareIntent.setType(mimeType != null ? mimeType : "*/*");
-    shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-    Intent chooserIntent = Intent.createChooser(shareIntent, null /* dialog title optional */);
-    if (mRegistrar.activity() != null) {
-      mRegistrar.activity().startActivity(chooserIntent);
-    } else {
-      chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      mRegistrar.context().startActivity(chooserIntent);
-    }
-  }
 
 }
 
