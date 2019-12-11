@@ -27,22 +27,22 @@ class MethodCallHandler implements MethodChannel.MethodCallHandler {
       share.share((String) call.argument("text"), (String) call.argument("subject"));
       result.success(null);
     } else if (call.method.equals("shareFile")) {
-        expectMapArguments(call);
-        // Android does not support showing the share sheet at a particular point on screen.
-        try {
-          shareFile(
-              (String) call.argument("path"),
-              (String) call.argument("mimeType"),
-              (String) call.argument("subject"),
-              (String) call.argument("text"));
-          result.success(null);
-        } catch (IOException e) {
-          result.error(e.getMessage(), null, null);
-        }
-      else {
+      expectMapArguments(call);
+      // Android does not support showing the share sheet at a particular point on screen.
+      try {
+        shareFile(
+                (String) call.argument("path"),
+                (String) call.argument("mimeType"),
+                (String) call.argument("subject"),
+                (String) call.argument("text"));
+        result.success(null);
+      } catch (IOException e) {
+        result.error(e.getMessage(), null, null);
+      }
+    } else {
         result.notImplemented();
       }
-    }
+
   }
 
   private void expectMapArguments(MethodCall call) throws IllegalArgumentException {
